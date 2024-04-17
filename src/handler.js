@@ -1,9 +1,5 @@
-const {
-  nanoid
-} = require("nanoid");
-const {
-  books
-} = require("./books");
+const { nanoid } = require("nanoid");
+const { books } = require("./books");
 
 const APIResponse = (res, status, message, code, data = {}) => {
   return res
@@ -24,6 +20,7 @@ const addBookHandler = (req, res) => {
     publisher,
     pageCount,
     readPage,
+    reading,
   } = req.payload;
 
   if (!name) {
@@ -50,7 +47,7 @@ const addBookHandler = (req, res) => {
       publisher,
       pageCount,
       readPage,
-      reading: false,
+      reading,
       finished: readPage === pageCount ? true : false,
       insertedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -70,25 +67,62 @@ const addBookHandler = (req, res) => {
 };
 
 const getAllBooks = (req, res) => {
-  let data = {
-    books: [],
-  };
+  let { name, reading, finished } = req.query;
   if (books.length > 0) {
-    books.map((book) => {
-      data.books.push({
+    let temp = books.map((book) => {
+      return {
         id: book.id,
         name: book.name,
         publisher: book.publisher,
-      });
+      };
     });
+    if (name) {
+      let temp = books
+        .filter(
+          (book) => book.name.toLowerCase().search(name.toLowerCase()) >= 0
+        )
+        .map((book) => {
+          return {
+            id: book.id,
+            name: book.name,
+            publisher: book.publisher,
+          };
+        });
+      return APIResponse(res, "success", "", 200, { books: temp });
+    } else if (reading) {
+      let value = parseInt(reading) ? true : false;
+      let temp = books
+        .filter((book) => book.reading == value)
+        .map((book) => {
+          return {
+            id: book.id,
+            name: book.name,
+            publisher: book.publisher,
+            reading: book.reading,
+          };
+        });
+      return APIResponse(res, "success", "", 200, { books: temp });
+    } else if (finished) {
+      let value = parseInt(finished) ? true : false;
+      let temp = books
+        .filter((book) => book.finished == value)
+        .map((book) => {
+          return {
+            id: book.id,
+            name: book.name,
+            publisher: book.publisher,
+            finished: book.finished,
+          };
+        });
+      return APIResponse(res, "success", "", 200, { books: temp });
+    }
+    return APIResponse(res, "success", "", 200, { books: temp });
   }
-  return APIResponse(res, "success", "", 200, data);
+  return APIResponse(res, "success", "", 200, { books: books });
 };
 
 const getDetailBook = (req, res) => {
-  const {
-    id
-  } = req.params;
+  const { id } = req.params;
 
   const checkBook = books.filter((book) => book.id === id);
   if (checkBook.length > 0) {
@@ -101,9 +135,7 @@ const getDetailBook = (req, res) => {
 };
 
 const updateBook = (req, res) => {
-  const {
-    id
-  } = req.params;
+  const { id } = req.params;
   const {
     name,
     year,
@@ -157,9 +189,7 @@ const updateBook = (req, res) => {
 };
 
 const deleteBook = (req, res) => {
-  const {
-    id
-  } = req.params;
+  const { id } = req.params;
   const checkBook = books.filter((book) => book.id === id);
   if (checkBook.length > 0) {
     const temp = books.filter((book) => book.id !== id);
