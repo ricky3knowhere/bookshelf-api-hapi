@@ -2,13 +2,14 @@ const { nanoid } = require("nanoid");
 const { books } = require("./books");
 
 const APIResponse = (res, status, message, code, data = {}) => {
-  return res
-    .response({
-      status,
-      message,
-      data,
-    })
-    .code(code);
+  let payload = {
+    status,
+    message,
+  };
+  if (Object.keys(data).length > 0) {
+    payload.data = data;
+  }
+  return res.response(payload).code(code);
 };
 
 const addBookHandler = (req, res) => {
@@ -63,7 +64,7 @@ const addBookHandler = (req, res) => {
     }
   }
 
-  return APIResponse(res, "fail", "Catatan gagal ditambahkan", 500);
+  return APIResponse(res, "fail", "Buku gagal ditambahkan", 500);
 };
 
 const getAllBooks = (req, res) => {
@@ -88,7 +89,9 @@ const getAllBooks = (req, res) => {
             publisher: book.publisher,
           };
         });
-      return APIResponse(res, "success", "", 200, { books: temp });
+      return APIResponse(res, "success", "", 200, {
+        books: temp,
+      });
     } else if (reading) {
       let value = parseInt(reading) ? true : false;
       let temp = books
@@ -98,10 +101,11 @@ const getAllBooks = (req, res) => {
             id: book.id,
             name: book.name,
             publisher: book.publisher,
-            reading: book.reading,
           };
         });
-      return APIResponse(res, "success", "", 200, { books: temp });
+      return APIResponse(res, "success", "", 200, {
+        books: temp,
+      });
     } else if (finished) {
       let value = parseInt(finished) ? true : false;
       let temp = books
@@ -111,14 +115,19 @@ const getAllBooks = (req, res) => {
             id: book.id,
             name: book.name,
             publisher: book.publisher,
-            finished: book.finished,
           };
         });
-      return APIResponse(res, "success", "", 200, { books: temp });
+      return APIResponse(res, "success", "", 200, {
+        books: temp,
+      });
     }
-    return APIResponse(res, "success", "", 200, { books: temp });
+    return APIResponse(res, "success", "", 200, {
+      books: temp,
+    });
   }
-  return APIResponse(res, "success", "", 200, { books: books });
+  return APIResponse(res, "success", "", 200, {
+    books: books,
+  });
 };
 
 const getDetailBook = (req, res) => {
@@ -195,7 +204,7 @@ const deleteBook = (req, res) => {
     const temp = books.filter((book) => book.id !== id);
     books.length = 0;
     temp.map((book) => books.push(book));
-    return APIResponse(res, "fail", "Buku berhasil dihapus", 200);
+    return APIResponse(res, "success", "Buku berhasil dihapus", 200);
   }
   return APIResponse(
     res,
